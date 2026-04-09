@@ -1,4 +1,4 @@
-# Gesture Control System 🖐️
+# Gesture Control System
 
 A touchless gesture control system built on a Raspberry Pi 5 using MediaPipe and a Pi Camera. I started this as part of a computer vision learning project and ended up with something I actually use daily to control smart home devices.
 

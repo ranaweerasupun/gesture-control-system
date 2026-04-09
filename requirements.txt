@@ -1,0 +1,8 @@
+mediapipe
+opencv-python
+picamera2
+pyautogui
+python3-xlib
+paho-mqtt
+requests
+numpy

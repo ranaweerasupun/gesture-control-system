@@ -8,7 +8,7 @@ The system evolved bit by bit — from "hey, it can see my hand" to a full smart
 
 ## The final boss!
 
-By the end of week 6, this thing should be able to:
+By the end of this project, this thing should be able to:
 
 - Track 21 hand landmarks in real-time at ~20–30 FPS on a Pi 5
 - Recognize 9 distinct gestures (fist, pointing, peace sign, open palm, pinch, and more)
@@ -63,6 +63,12 @@ pip3 install -r requirements.txt
 ```bash
 python3 basic_hand_tracker.py
 ```
+
+**Week 2 — gesture recognition:**
+```bash
+python3 gesture_recognizer.py
+```
+
 ---
 
 ## Gesture reference

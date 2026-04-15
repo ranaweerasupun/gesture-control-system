@@ -4,7 +4,7 @@ Personal build log
 
 ---
 
-## 2025 December - Getting MediaPipe running (`week1_basic_hand_tracker.py`)
+## 2025 December - Getting MediaPipe running (`basic_hand_tracker.py`)
 
 **Goal:** Get any kind of hand tracking working on the Pi.
 
@@ -38,4 +38,30 @@ The 21-point landmark system is actually very intuitive once you look at the dia
 
 Detection rate in decent indoor lighting: ~95%. In low light or with a light source behind me: drops to ~60%. Lighting matters a lot.
 
-Don't forget the `Picamera2` thingy
+Don't forget the `Picamera2` thingy !!!
+
+---
+
+## 2026 March — Gesture Recognition (`gesture_recognizer.py`)
+
+**Goal:** Turn landmark positions into named gestures.
+
+### The procerss
+
+The core idea is simple: if a fingertip is farther from the wrist than its middle joint (PIP), the finger is extended. I looped through all five fingers with that logic and counted how many are up. From the count + which specific fingers are up, I can classify gestures.
+
+The thumb is a special case — it moves sideways, not vertically, so the distance comparison has to use a different reference point (the index MCP instead of the wrist).
+
+I added a gesture history buffer (last 5 frames) and returned the most common gesture in that window. This alone made a huge difference — without it, the labels flicker constantly.
+
+### Managed to get to work...
+
+- The `is_finger_extended()` method is clean and reusable — I am going to copy-paste it into every file after this
+- Smoothing with `gesture_history` made recognition feel actually usable
+- The OK sign detection (thumb + index tips within 0.05 normalized distance) works surprisingly well
+
+### These didn't work !
+
+- "Thumbs Up" kept triggering "Unknown" because my thumb logic was wrong at first — I was comparing to the wrong joint
+- "Rock" (index + pinky) sometimes reads as "Two" (index + middle) when my ring finger isn't fully curled — needs better angle detection, which I haven't solved yet
+- The confidence threshold of 0.7 for detection sometimes loses the hand when I move quickly. Dropping it to 0.5 helps but causes more false detections in busy backgrounds

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Week 1 - Basic Hand Tracker
+Basic Hand Tracker
 ----------------------------
 The first working version. All this does is grab frames from the Pi Camera,
 run them through MediaPipe, and draw the 21 hand landmarks on screen.

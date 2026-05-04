@@ -60,8 +60,37 @@ I added a gesture history buffer (last 5 frames) and returned the most common ge
 - Smoothing with `gesture_history` made recognition feel actually usable
 - The OK sign detection (thumb + index tips within 0.05 normalized distance) works surprisingly well
 
-### These didn't work !
+### Didn't work !
 
 - "Thumbs Up" kept triggering "Unknown" because my thumb logic was wrong at first — I was comparing to the wrong joint
 - "Rock" (index + pinky) sometimes reads as "Two" (index + middle) when my ring finger isn't fully curled — needs better angle detection, which I haven't solved yet
 - The confidence threshold of 0.7 for detection sometimes loses the hand when I move quickly. Dropping it to 0.5 helps but causes more false detections in busy backgrounds
+
+
+---
+
+## 2026 April — Volume Control (`week3_gesture_volume_control.py`)
+
+**Goal:** Actually control something with a gesture.
+
+### The process
+
+Used the pinch gesture (thumb-to-index distance) to control volume. I map the normalized distance between the two fingertips — roughly 0.02 (touching) to 0.20 (fully spread) — onto a 0–100 volume scale. Then I use `amixer` to set system volume on the Pi.
+
+I also added basic swipe detection using the wrist position delta between frames — left/right swipes map to next/previous track, though there's no actual media player integration yet, just print statements.
+
+### Managed to get to work with some tweeking ...
+
+- The pinch-to-volume mapping feels natural after you use it for a few seconds
+- The visual volume bar at the bottom of the frame is very satisfying
+- `amixer sset Master <volume>%` works perfectly on Pi OS
+
+### Didn't work Properly !
+
+- I set `min_dist = 0.02` and `max_dist = 0.2` for the pinch range. In practice my hand often sits at ~0.18 even when fully spread, so the volume never quite reached 100. I'll tune this per-hand eventually
+- Swipe detection is very noisy — the wrist jumps around a lot frame-to-frame. Any dx > 0.1 would fire constantly. I added a cooldown (`action_cooldown = 1.0`) which helped but the gestures still felt unintentional a lot of the time
+- `capture_output=True` in the `subprocess.run()` for amixer silently swallowed errors. I wasted 30 minutes thinking the volume wasn't changing when actually amixer wasn't finding the right mixer name. Changed it to let errors print while debugging
+
+### Notes
+
+The cooldown approach (track last action time, skip if within N seconds) became a pattern I used in every file after this. It's simple but effective.

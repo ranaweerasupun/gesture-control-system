@@ -59,15 +59,21 @@ pip3 install -r requirements.txt
 
 ## Running the scripts
 
-**just see it work:**
+**Just see it work:**
 ```bash
 python3 basic_hand_tracker.py
 ```
 
-**Week 2 — gesture recognition:**
+**Gesture Recognition:**
 ```bash
 python3 gesture_recognizer.py
 ```
+
+**Volume Control:**
+```bash
+python3 gesture_volume_control.py
+```
+Pinch your thumb and index finger close together for quiet, spread them apart for loud.
 
 ---
 

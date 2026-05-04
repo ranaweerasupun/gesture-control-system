@@ -175,3 +175,153 @@ class GestureActions:
             self.last_action_time = current_time
 
         return action
+    
+
+def main():
+    print("Gesture Volume Control")
+    print("=" * 60)
+    print("Pinch gesture (thumb + index): adjust volume")
+    print("  Pinched close = quiet | Spread apart = loud")
+    print("Swipe right: Next Track")
+    print("Swipe left: Previous Track")
+    print("Thumbs Up: Play/Pause")
+    print("\nPress 'q' to quit")
+    print("=" * 60)
+
+    volume_controller = VolumeController()
+    gesture_actions = GestureActions()
+
+    picam2 = Picamera2()
+    config = picam2.create_preview_configuration(
+        main={"size": (CAMERA_WIDTH, CAMERA_HEIGHT)}
+    )
+    picam2.configure(config)
+    picam2.start()
+    time.sleep(2)
+
+    hands = mp_hands.Hands(
+        static_image_mode=False,
+        max_num_hands=1,
+        min_detection_confidence=0.7,
+        min_tracking_confidence=0.5
+    )
+
+    previous_wrist = None   # stored between frames for swipe detection
+
+    try:
+        while True:
+            frame = picam2.capture_array()
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+
+            results = hands.process(frame_rgb)
+
+            current_action = None
+
+            if results.multi_hand_landmarks:
+                hand_landmarks = results.multi_hand_landmarks[0]
+
+                mp_drawing.draw_landmarks(
+                    frame,
+                    hand_landmarks,
+                    mp_hands.HAND_CONNECTIONS
+                )
+
+                # Update volume from pinch distance
+                distance, volume = volume_controller.update_volume_from_pinch(hand_landmarks)
+
+                # Check for swipe gesture
+                swipe = gesture_actions.detect_swipe(hand_landmarks, previous_wrist)
+                if swipe:
+                    current_action = gesture_actions.execute_action(swipe)
+
+                # Store wrist position for next frame's swipe check
+                previous_wrist = hand_landmarks.landmark[0]
+
+                # Draw volume bar at the bottom of the frame
+                bar_width = 400
+                bar_height = 40
+                bar_x = (CAMERA_WIDTH - bar_width) // 2
+                bar_y = CAMERA_HEIGHT - 80
+
+                # Dark background for the bar
+                cv2.rectangle(
+                    frame,
+                    (bar_x, bar_y),
+                    (bar_x + bar_width, bar_y + bar_height),
+                    (50, 50, 50),
+                    -1
+                )
+
+                # Colored fill proportional to volume
+                # Orange at low volumes, green at normal
+                fill_width = int((volume / 100) * bar_width)
+                bar_color = (0, 255, 0) if volume > 30 else (0, 165, 255)
+                cv2.rectangle(
+                    frame,
+                    (bar_x, bar_y),
+                    (bar_x + fill_width, bar_y + bar_height),
+                    bar_color,
+                    -1
+                )
+
+                cv2.putText(
+                    frame,
+                    f"Volume: {volume}%",
+                    (bar_x + bar_width // 2 - 80, bar_y + 28),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.8,
+                    (255, 255, 255),
+                    2
+                )
+
+                # Show the raw pinch distance so I can tune the thresholds
+                cv2.putText(
+                    frame,
+                    f"Pinch dist: {distance:.3f}",
+                    (10, CAMERA_HEIGHT - 20),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.6,
+                    (0, 255, 255),
+                    2
+                )
+
+            else:
+                # No hand in frame — reset swipe tracking
+                previous_wrist = None
+                cv2.putText(
+                    frame,
+                    "Show your hand to control volume",
+                    (CAMERA_WIDTH // 2 - 200, CAMERA_HEIGHT // 2),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.7,
+                    (0, 255, 255),
+                    2
+                )
+
+            # Flash the action name when something fires
+            if current_action:
+                cv2.putText(
+                    frame,
+                    f"Action: {current_action}",
+                    (10, 40),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.8,
+                    (0, 255, 0),
+                    2
+                )
+
+            cv2.imshow("Gesture Volume Control", frame)
+
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+
+    except KeyboardInterrupt:
+        pass
+
+    cv2.destroyAllWindows()
+    picam2.stop()
+    hands.close()
+
+
+if __name__ == "__main__":
+    main()

@@ -69,7 +69,7 @@ I added a gesture history buffer (last 5 frames) and returned the most common ge
 
 ---
 
-## 2026 April — Volume Control (`week3_gesture_volume_control.py`)
+## 2026 April — Volume Control (`gesture_volume_control.py`)
 
 **Goal:** Actually control something with a gesture.
 

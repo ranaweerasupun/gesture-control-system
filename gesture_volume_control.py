@@ -101,3 +101,77 @@ class VolumeController:
         return distance, self.volume
 
 
+class GestureActions:
+    """
+    Handles discrete gesture-triggered actions (swipe = next/prev track etc).
+    Separate from VolumeController because these are event-based, not continuous.
+    """
+
+    def __init__(self):
+        self.last_gesture = None
+        self.action_cooldown = 1.0   # seconds between action triggers
+        self.last_action_time = 0
+
+    def is_finger_extended(self, landmarks, finger_tip, finger_pip, wrist_idx=0):
+        """Same extension check as in week 2"""
+        wrist = landmarks[wrist_idx]
+        tip = landmarks[finger_tip]
+        pip = landmarks[finger_pip]
+
+        tip_dist = math.sqrt((tip.x - wrist.x) ** 2 + (tip.y - wrist.y) ** 2)
+        pip_dist = math.sqrt((pip.x - wrist.x) ** 2 + (pip.y - wrist.y) ** 2)
+
+        return tip_dist > pip_dist
+
+    def detect_swipe(self, hand_landmarks, previous_wrist_pos):
+        """
+        Detect a horizontal swipe by comparing wrist position across frames.
+
+        The threshold of 0.1 works okay for deliberate swipes, but it does
+        fire sometimes when I just move my hand into frame. The cooldown
+        timer is what really prevents double-triggers.
+        """
+        if previous_wrist_pos is None:
+            return None
+
+        current_wrist = hand_landmarks.landmark[0]
+        dx = current_wrist.x - previous_wrist_pos.x
+
+        if abs(dx) > 0.1:
+            return "Swipe Right" if dx > 0 else "Swipe Left"
+
+        return None
+
+    def execute_action(self, gesture):
+        """
+        Maps gesture names to actions. Only fires if the cooldown has elapsed.
+        Returns the action name (for UI display) or None if on cooldown.
+        """
+        current_time = time.time()
+
+        if current_time - self.last_action_time < self.action_cooldown:
+            return None
+
+        action = None
+
+        if gesture == "Thumbs Up":
+            action = "Play/Pause"
+            # Could call a media player command here, e.g. playerctl play-pause
+            self.last_action_time = current_time
+
+        elif gesture == "Swipe Right":
+            action = "Next Track"
+            # subprocess.run(['playerctl', 'next'])
+            self.last_action_time = current_time
+
+        elif gesture == "Swipe Left":
+            action = "Previous Track"
+            # subprocess.run(['playerctl', 'previous'])
+            self.last_action_time = current_time
+
+        elif gesture == "Peace":
+            action = "Screenshot"
+            # subprocess.run(['scrot'])
+            self.last_action_time = current_time
+
+        return action

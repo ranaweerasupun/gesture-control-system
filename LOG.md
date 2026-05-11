@@ -94,3 +94,9 @@ I also added basic swipe detection using the wrist position delta between frames
 ### Notes
 
 The cooldown approach (track last action time, skip if within N seconds) became a pattern I used in every file after this. It's simple but effective.
+
+---
+
+## 2026 May — Multi-Function Controller (`multi_gesture_controller.py`)
+
+**Goal:** Build something more complete — mouse, media, and presentation control in one.

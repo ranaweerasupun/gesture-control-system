@@ -220,7 +220,14 @@ class AdvancedGestureController:
         return action
     
 def main():
-    
+    print("Multi-Function Gesture Controller")
+    print("=" * 60)
+    print("Modes (press 'm' to cycle):")
+    print("  Mouse        - move cursor with index, pinch to click")
+    print("  Media        - palm=play, point=next, two=prev, three=vol+, fist=vol-")
+    print("  Presentation - point=next slide, two=prev, three=laser, palm=F5")
+    print("\nPress 'q' to quit")
+    print("=" * 60)
 
     controller = AdvancedGestureController()
 

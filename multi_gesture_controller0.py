@@ -219,3 +219,124 @@ class AdvancedGestureController:
 
         return action
     
+def main():
+    
+
+    controller = AdvancedGestureController()
+
+    picam2 = Picamera2()
+    config = picam2.create_preview_configuration(
+        main={"size": (CAMERA_WIDTH, CAMERA_HEIGHT)}
+    )
+    picam2.configure(config)
+    picam2.start()
+    time.sleep(2)
+
+    hands = mp_hands.Hands(
+        static_image_mode=False,
+        max_num_hands=1,
+        min_detection_confidence=0.7,
+        min_tracking_confidence=0.5
+    )
+
+    print(f"\nStarting in {controller.mode} mode")
+
+    try:
+        while True:
+            frame = picam2.capture_array()
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+            h, w, _ = frame.shape
+
+            results = hands.process(frame_rgb)
+
+            action = None
+            current_gesture = "None"
+
+            if results.multi_hand_landmarks:
+                hand_landmarks = results.multi_hand_landmarks[0]
+
+                mp_drawing.draw_landmarks(
+                    frame,
+                    hand_landmarks,
+                    mp_hands.HAND_CONNECTIONS,
+                    mp_drawing_styles.get_default_hand_landmarks_style(),
+                    mp_drawing_styles.get_default_hand_connections_style()
+                )
+
+                current_gesture = controller.detect_gesture(hand_landmarks) or "None"
+
+                # Route to the right mode handler
+                if controller.mode == "Mouse":
+                    action = controller.control_mouse(hand_landmarks, w, h)
+                elif controller.mode == "Media":
+                    action = controller.control_media(hand_landmarks)
+                elif controller.mode == "Presentation":
+                    action = controller.control_presentation(hand_landmarks)
+
+            # Mode display (top left)
+            cv2.rectangle(frame, (10, 10), (250, 70), (0, 0, 0), -1)
+            cv2.putText(
+                frame,
+                f"Mode: {controller.mode}",
+                (20, 45),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.8,
+                (0, 255, 0),
+                2
+            )
+
+            # Current gesture
+            cv2.rectangle(frame, (10, 80), (250, 140), (0, 0, 0), -1)
+            cv2.putText(
+                frame,
+                f"Gesture: {current_gesture}",
+                (20, 115),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.7,
+                (255, 255, 0),
+                2
+            )
+
+            # Action flash when something fires
+            if action:
+                cv2.rectangle(frame, (10, 150), (350, 210), (0, 100, 0), -1)
+                cv2.putText(
+                    frame,
+                    f"Action: {action}",
+                    (20, 185),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.8,
+                    (255, 255, 255),
+                    2
+                )
+
+            # Controls reminder at the bottom
+            cv2.putText(
+                frame,
+                "Press 'm' to switch mode | 'q' to quit",
+                (10, h - 20),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.5,
+                (200, 200, 200),
+                1
+            )
+
+            cv2.imshow("Gesture Controller", frame)
+
+            key = cv2.waitKey(1) & 0xFF
+            if key == ord('q'):
+                break
+            elif key == ord('m'):
+                new_mode = controller.switch_mode()
+                print(f"Switched to: {new_mode}")
+
+    except KeyboardInterrupt:
+        pass
+
+
+    print("\nGesture controller stopped.")
+
+
+if __name__ == "__main__":
+    main()
+

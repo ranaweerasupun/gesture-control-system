@@ -100,3 +100,34 @@ The cooldown approach (track last action time, skip if within N seconds) became 
 ## 2026 May — Multi-Function Controller (`multi_gesture_controller.py`)
 
 **Goal:** Build something more complete — mouse, media, and presentation control in one.
+
+### The process
+
+Introduced a mode system: Mouse, Media, and Presentation modes, cycling with the `m` key. Each mode maps gestures to different actions.
+
+Mouse mode uses `pyautogui` to move the cursor. I track the index fingertip position and map it to screen coordinates. Added smoothing (`prev_x + (target - prev_x) / smoothing_factor`) to avoid jitter. Pinch = left click.
+
+Media mode uses `pyautogui.press('playpause')` etc. — these are media key names that work on Linux with the right setup.
+
+Presentation mode sends arrow keys and F5 for PowerPoint/LibreOffice Impress navigation.
+
+### Working
+
+- Smoothing the mouse movement with a factor of 5 makes it actually usable
+- The mode display in the top-left corner makes it easy to know where you are
+- `pyautogui.FAILSAFE = True` is on by default — moving the cursor to a corner kills the script. That's actually useful while debugging
+
+### Needed some tweeking
+
+- `pyautogui` on Pi needs `python3-xlib` installed separately. Forgot this, got a cryptic import error
+- Mouse mode is sensitive to hand position. At certain angles, the index tip position jumps — the smoothing helps but doesn't fully solve it. I think the real fix is to clamp movement speed rather than position
+- `pyautogui.press('playpause')` doesn't work reliably on all Pi setups. It depends on `xdotool` being installed and X11 being the display server. Wayland users will have a bad time
+- The "Point" gesture (index only) in Mouse mode was constantly triggering even when I wanted "Pinch." I had to check pinch first since it's more specific
+
+### Notes
+
+Refactoring the gesture detection into `AdvancedGestureController` as a class was the right call. Having `detect_gesture()` and `control_mouse()` etc. as methods made the main loop very clean.
+
+The mode-switching with `m` key is a bit clunky for real use — you can't switch modes while your hand is in the camera view. A gesture-based mode switch would be better.
+
+---

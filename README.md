@@ -75,6 +75,12 @@ python3 gesture_volume_control.py
 ```
 Pinch your thumb and index finger close together for quiet, spread them apart for loud.
 
+**Multi-function controller:**
+```bash
+python3 multi_gesture_controller.py
+```
+Press `m` to switch between Mouse, Media, and Presentation modes.
+
 ---
 
 ## Gesture reference

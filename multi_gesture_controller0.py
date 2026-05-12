@@ -333,6 +333,9 @@ def main():
     except KeyboardInterrupt:
         pass
 
+    cv2.destroyAllWindows()
+    picam2.stop()
+    hands.close()
 
     print("\nGesture controller stopped.")
 

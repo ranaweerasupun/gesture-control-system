@@ -2,7 +2,7 @@
 
 A touchless gesture control system built on a Raspberry Pi 5 using MediaPipe and a Pi Camera. I started this as part of a computer vision learning project and ended up with something I actually use daily to control smart home devices.
 
-The system evolved bit by bit — from "hey, it can see my hand" to a full smart home controller that handles lights, thermostat, fans, and locks. Follow the log files and the python snippets in order - you'll learn something from it - and it is awsome !
+The system evolve bit by bit — from "hey, it can see my hand" to a full smart home controller that handles lights, thermostat, fans, and locks. Follow the log files and the python snippets in order - you'll learn something from it - and it is awsome !
 
 ---
 
